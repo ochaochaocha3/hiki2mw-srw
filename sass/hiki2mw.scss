@@ -1,0 +1,497 @@
+@import "html5doctor-reset";
+
+/* Hiki2MediaWiki for SRW Wiki */
+
+$grayDark: #333;
+$grayDarker: #2c2c2c;
+$blue: #049cdb;
+$green: #46a546;
+$red: #9d261d;
+$yellow: #ffc40d;
+$orange: #f89406;
+$pink: #c3325f;
+$purple: #7a43b6;
+
+$linkColor: #08c;
+
+@mixin resetMarginPadding {
+    margin: 0;
+    padding: 0;
+}
+
+@mixin box-sizing ($param) {
+    -webkit-box-sizing: $param;
+    -moz-box-sizing: $param;
+    -ms-box-sizing: $param;
+    box-sizing: $param;
+}
+
+@mixin box-shadow ($param) {
+    -webkit-box-shadow: $param;
+    -moz-box-shadow: $param;
+    box-shadow: $param;
+}
+
+@mixin border-radius ($param) {
+    -webkit-border-radius: $param;
+    -moz-border-radius: $param;
+    border-radius: $param;
+}
+
+@mixin linear-gradient-image ($color-stop-1, $color-stop-2) {
+    image: -moz-linear-gradient(top, $color-stop-1, $color-stop-2);
+    image: -ms-linear-gradient(top, $color-stop-1, $color-stop-2);
+    image: -webkit-gradient(linear, 0 0, 0 100%, from($color-stop-1), 
+        to($color-stop-2));
+    image: -webkit-linear-gradient(top, $color-stop-1, $color-stop-2);
+    image: -o-linear-gradient(top, $color-stop-1, $color-stop-2);
+    image: linear-gradient(top, $color-stop-1, $color-stop-2);
+}
+
+@mixin transition ($param) {
+    -webkit-transition: $param;
+    -moz-transition: $param;
+    -ms-transition: $param;
+    -o-transition: $param;
+    transition: $param;
+}
+
+@mixin clearfix {
+    *zoom: 1;
+
+    &:before,
+    &:after {
+        display: block;
+        content: "";
+    }
+
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin well {
+    $wellBoxShadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+
+    min-height: 1em;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border: 1px solid #eee;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    @include border-radius(4px);
+    @include box-shadow($wellBoxShadow);
+}
+
+@mixin span2 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 23.404255319148936%;
+    margin-left: 2.127659574468085%;
+}
+
+@mixin span3 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 36.170212765957446%;
+    margin-left: 2.127659574468085%;
+}
+
+@mixin span2_768 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 22.928176794%;
+    margin-left: 2.762430939%;
+}
+
+@mixin span6_768 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 74.30939226%;
+    margin-left: 2.762430939%;
+}
+
+@mixin spanHalf_768 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 48.618784527%;
+}
+
+@mixin span2_1200 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 23.7068965517241%;
+    margin-left: 1.72413793103448%;
+}
+
+@mixin span3_1200 {
+    display: block;
+    @include box-sizing(border-box);
+    width: 36.4224137931034%;
+    margin-left: 1.72413793103448%;
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    color: $grayDark;
+    background-color: $grayDarker;
+}
+
+header {
+    $topColor: #059;
+    $bottomColor: #036;
+    $boxShadow: 0 2px 3px rgba(0,0,0,.5), inset 0 -1px 0 rgba(0,0,0,.25);
+
+    position: relative;
+    z-index: 10;
+    height: 48px;
+    margin: 0;
+    padding: 0 20px;
+    background: {
+        color: #00447f;
+        @include linear-gradient-image($topColor, $bottomColor);
+        repeat: repeat-x;
+    }
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$topColor}',
+        endColorstr='#{$bottomColor}', GradientType=0);
+    @include box-shadow($boxShadow);
+    color: #fff;
+
+    h1 {
+        font-size: 24px;
+        line-height: 2;
+    }
+}
+
+nav#navigation {
+    display: none;
+    @include well;
+}
+
+div#converter {
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+    background-color: #fff;
+
+    form {
+        @include clearfix;
+
+        width: 100%;
+
+        section {
+            @include well;
+
+            float: left;
+        }
+
+        section#Hiki, section#MediaWiki {
+            @include span3;
+        }
+
+        section#operation {
+            @include span2;
+
+            p.buttons {
+                margin-top: 0.5em;
+                text-align: center;
+            }
+
+            label {
+                font-size: 100%;
+            }
+
+            button {
+                width: 100px;
+                margin-top: 0.5em;
+            }
+        }
+
+        section#Hiki {
+            margin-left: 0;
+        }
+
+        fieldset, div#links-alphabet, div#WikiNames, div#links-parenthesis {
+            margin-top: 1em;
+        }
+
+        h2 + fieldset {
+            margin-top: 0;
+        }
+
+        div#links-alphabet, div#WikiNames, div#links-parenthesis {
+            display: none;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        label {
+            display: block;
+            &:hover {
+                color: darken($linkColor, 15%);
+                text-decoration: underline;
+            }
+        }
+
+        textarea {
+            $transition: border linear 0.2s, box-shadow linear 0.2s;
+
+            display: inline-block;
+            width: 100%;
+            height: auto;
+            resize: vertical;
+            margin-top: 0.225em;
+            padding: 4px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            @include border-radius(3px);
+            @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
+            @include transition($transition);
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            color: #555;
+
+            &:focus {
+                $box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 
+                    0 0 8px rgba(82,168,236,.6);
+                border-color: rgba(82, 168, 236, 0.8);
+                outline: 0;
+                outline: thin dotted \9;
+                /* IE6-9 */
+
+                @include box-shadow($box-shadow);
+            }
+        }
+
+        .table {
+            margin: {
+                top: 0.25em;
+                bottom: 0;
+            }
+            font-size: 90%;
+
+            th, td {
+                vertical-align: middle;
+            }
+
+            th {
+                $topColor: #ee5f5b;
+                $bottomColor: #bd362f;
+
+                background: {
+                    color: $red;
+                    @include linear-gradient-image($topColor, $bottomColor);
+                    repeat: repeat-x;
+                }
+                color: #fff;
+                text-align: center;
+            }
+
+            td {
+                word-break: break-all;
+            }
+
+            td.number {
+                width: 2.25em;
+                text-align: right;
+            }
+
+            &.table-striped tbody {
+                td, th {
+                    background-color: #fff;
+                }
+                tr:nth-child(even) {
+                    td, th {
+                        background-color: #f5f5ff;
+                    }
+                }
+            }
+
+            &.table-bordered {
+                &, & td, & th {
+                    border-color: #ccc;
+                }
+            }
+        }
+    }
+}
+
+footer {
+    $boxShadow: 0 -2px 3px rgba(0,0,0,.25), inset 0 1px 0 rgba(0,0,0,.1);
+
+    position: relative;
+    z-index: 10;
+    margin: 0;
+    padding: 1.5em 20px 2.4em;
+    @include box-shadow($boxShadow);
+    color: #ccc;
+
+    div#footer-container {
+        @include clearfix;
+        width: 100%;
+    }
+
+    nav {
+        @include span3;
+        float: right;
+        padding: 0 20px;
+
+        ul {
+            margin-top: 0.5em;
+            padding-top: 0.5em;
+            border-top: 1px solid #666;
+        }
+
+        h1 + ul {
+            padding-top: 0;
+            border: 0;
+        }
+    }
+
+    section#information {
+        @include span3;
+        float: left;
+        margin-left: 0;
+        padding: 0 20px;
+    }
+
+    a {
+        $linkColor: #0ad;
+
+        color: $linkColor;
+
+        &:focus {
+            outline: thin dotted #cccccc;
+        }
+
+        &:hover {
+            color: lighten($linkColor, 15%);
+        }
+    }
+
+    address {
+        font-style: normal;
+    }
+}
+
+h1, h2, section#Hiki label, section#MediaWiki label, legend {
+    font-weight: bold;
+}
+
+h2, footer h1 {
+    margin-bottom: 0.5em;
+    font-size: 130%;
+}
+
+nav#navigation h2, h3, section#Hiki label, section#MediaWiki label, legend {
+    font-size: 100%;
+}
+
+a {
+    color: $linkColor;
+    text-decoration: none;
+
+    &:hover {
+        color: darken($linkColor, 15%);
+        text-decoration: underline;
+    }
+
+    &:focus {
+        outline: thin dotted $grayDark;
+        outline: 5px auto -webkit-focus-ring-color;
+        outline-offset: -2px;
+    }
+
+    &:hover, &:active {
+        outline: 0;
+    }
+}
+
+strong {
+    margin: {
+        left: 2px;
+        right: 2px;
+    }
+    padding: {
+        left: 2px;
+        right: 2px;
+    }
+    background-color: lighten($yellow, 15%);
+    font-size: 90%;
+    font-weight: bold;
+}
+
+a, label, input[type="checkbox"] {
+    cursor: pointer;
+}
+
+@media (max-width: 979px) {
+    header {
+        position: fixed;
+        width: 100%;
+    }
+
+    nav#navigation {
+        @include span2_768;
+        position: fixed;
+        z-index: 10;
+        top: 68px;
+        right: 20px;
+    }
+
+    div#converter {
+        padding-top: 68px;
+        form {
+            section {
+                float: none;
+                margin-top: 1em;
+            }
+
+            section:first-child {
+                margin-top: 0;
+            }
+
+            section#Hiki, section#operation, section#MediaWiki {
+                @include span6_768;
+                margin-left: 0;
+            }
+
+            textarea {
+                height: 12em;
+            }
+        }
+    }
+
+    footer {
+        nav, section#information {
+            @include spanHalf_768;
+        }
+    }
+}
+
+@media (min-width: 1200px) {
+    div#converter {
+        form {
+            section#Hiki, section#MediaWiki {
+                @include span3_1200;
+            }
+
+            section#operation {
+                @include span2_1200;
+            }
+
+            section#Hiki {
+                margin-left: 0;
+            }
+        }
+    }
+
+    footer {
+        nav, section#information {
+            @include span3_1200;
+        }
+
+        section#information {
+            margin-left: 0;
+        }
+    }
+}
