@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
- * Controller
- * 2013-02-27 Ver. 2.2.0 made by ocha
+ * Controller Module
+ * 2013-02-27 made by ocha
  */
 
 /*jslint browser: true */
@@ -40,7 +40,11 @@ $(function () {
         $ckbAnalyzeLinks = $('#ckbAnalyzeLinks'),
         $ckbConvertAbbrSRWLinks = $('#ckbConvertAbbrSRWLinks'),
 
+        elements,
+        lenElements,
         cursors,
+        cursorTAEnabled = window.getComputedStyle($taHiki[0]).cursor,
+        cursorTADisabled = window.getComputedStyle($taMW[0]).cursor,
 
         analyzeLinks,
         sourceMW = '',
@@ -69,21 +73,22 @@ $(function () {
     function resetElements() {
         sourceMW = '';
         $taMW[0].disabled = true;
-        $taMW.val('');
+        $taMW.val('').css('cursor', cursorTADisabled);
 
         $('section#MediaWiki div').hide()
             .children().not('h3').remove();
     }
 
     function displayConverting() {
-        var elements, len, i;
+        var i;
 
-        elements = document.getElementsByTagName('*');
-        len = elements.length;
+        elements = Array.prototype.slice.apply(
+            document.getElementsByTagName('*'), []);
+        lenElements = elements.length;
 
         cursors = [];
-        for (i = 0; i < len; i += 1) {
-            cursors.push(elements[i].style.cursor);
+        for (i = 0; i < lenElements; i += 1) {
+            cursors.push(window.getComputedStyle(elements[i]).cursor);
         }
 
         $('*').css('cursor', 'wait');
@@ -95,18 +100,17 @@ $(function () {
     }
 
     function restoreDisplay() {
-        var elements, len, i;
+        var i;
 
         $taMW[0].disabled = false;
         $btnConvert[0].disabled = false;
         $btnReset[0].disabled = false;
         $btnConvertText.text('変換');
 
-        elements = document.getElementsByTagName("*");
-        len = elements.legnth;
-        for (i = 0; i < len; i += 1) {
+        for (i = 0; i < lenElements; i += 1) {
             elements[i].style.cursor = cursors[i];
         }
+        $taMW.css('cursor', cursorTAEnabled);
     }
 
     function convert() {

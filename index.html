@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
     <head>
         <meta charset="UTF-8" />
         <title>Hiki2MediaWiki for SRW Wiki</title>
         <meta name="author" content="ocha" />
-        <meta name="keywords" content="スーパーロボット大戦Wiki,Hiki,MediaWiki,書式" />
-        <meta name="description" content="スーパーロボット大戦Wiki用のHiki書式からMediaWiki書式へのコンバータ" />
+        <meta name="keywords" content="Hiki2MediaWiki,Hiki2MediaWiki for SRW Wiki,スーパーロボット大戦Wiki,Hiki,MediaWiki,書式" />
+        <meta name="description" content="スーパーロボット大戦Wiki 用の Hiki 書式から MediaWiki 書式へのコンバータ" />
         <link rel="stylesheet" href="css/bootstrap.min.css" />
         <link rel="stylesheet" href="css/hiki2mw.css" />
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -20,9 +20,9 @@
         <nav id="navigation">
             <h2>ナビゲーション</h2>
             <ul>
-                <li><a href="#Hiki">Hiki書式</a></li>
+                <li><a href="#Hiki">Hiki 書式</a></li>
                 <li><a href="#operation">オプション・操作</a></li>
-                <li><a href="#MediaWiki">MediaWiki書式</a></li>
+                <li><a href="#MediaWiki">MediaWiki 書式</a></li>
                 <li><a href="#footer">リンク・情報</a></li>
             </ul>
         </nav>
@@ -30,21 +30,21 @@
             <noscript>
                 <div class="alert alert-error">
                     <div class="alert-block">
-                        <p>このWebサイトの機能を利用するためにはJavaScriptを有効にする必要があります。<a href="http://www.enable-javascript.com/ja/">あなたのWebブラウザーでJavaScriptを有効にする方法</a>を参照してください。</p>
+                        <p>この Web サイトの機能を利用するためには JavaScript を有効にする必要があります。「<a href="http://www.enable-javascript.com/ja/">あなたの Web ブラウザーで JavaScript を有効にする方法</a>」を参照してください。</p>
                     </div>
                 </div>
             </noscript>
             <form id="frmHiki2MW" name="frmHiki2MW">
                 <section id="Hiki">
-                    <h2>Hiki書式</h2>
-                    <p><label>ソース<br /><textarea id="taHiki" name="taHiki" cols="40" rows="20" placeholder="!Hiki書式のソース" title="Hiki書式のソースを入力してください"></textarea></label></p>
+                    <h2>Hiki 書式</h2>
+                    <p><label>ソース<br /><textarea id="taHiki" name="taHiki" cols="40" rows="20" placeholder="!Hiki 書式のソース" title="Hiki 書式のソースを入力してください"></textarea></label></p>
                 </section>
                 <section id="operation">
                     <h2>オプション・操作</h2>
                     <p>
-                        <label class="checkbox" title="SRW作品の略称へのリンクを正式名称へのリンクへと変換し、多義語ページへのリンクや正式名称ページへのリダイレクトを減少させます。例：[[第2次]]→[[第2次スーパーロボット大戦|第2次]]"><input type="checkbox" id="ckbConvertAbbrSRWLinks" name="optBehavior" value="convertAbbrSRWLinks" checked="checked" />SRW作品の略称へのリンクを変換する</label>
-                        <label class="checkbox" title="リンクを解析します。変換に伴ってリンク切れが生じやすいものの一覧を表示し、修正作業を補助します。"><input type="checkbox" id="ckbAnalyzeLinks" name="optBehavior" value="analyzeLinks" checked="checked" />リンクを解析する</label>
-                        <label class="checkbox" title="MediaWiki書式のソースのテキストボックスにフォーカスが移ったとき、内容を選択状態にします"><input type="checkbox" id="ckbSelectOnFocus" name="optBehavior" value="selectOnFocus" /> MediaWiki書式のソースをフォーカス時に選択状態にする</label>
+                        <label class="checkbox" title="SRW 作品の略称へのリンクを正式名称へのリンクへと変換し、多義語ページへのリンクや正式名称ページへのリダイレクトを減少させます。例：[[第2次]] → [[第2次スーパーロボット大戦|第2次]]"><input type="checkbox" id="ckbConvertAbbrSRWLinks" name="optBehavior" value="convertAbbrSRWLinks" checked="checked" /> SRW 作品の略称へのリンクを変換する</label>
+                        <label class="checkbox" title="リンクを解析します。変換に伴ってリンク切れが生じやすいものの一覧を表示し、修正作業を補助します。"><input type="checkbox" id="ckbAnalyzeLinks" name="optBehavior" value="analyzeLinks" checked="checked" /> リンクを解析する</label>
+                        <label class="checkbox" title="MediaWiki 書式のソースのテキストボックスにフォーカスが移ったとき、内容を選択状態にします"><input type="checkbox" id="ckbSelectOnFocus" name="optBehavior" value="selectOnFocus" /> MediaWiki 書式のソースをフォーカス時に選択状態にする</label>
                     </p>
                     <p class="buttons">
                         <button type="button" id="btnConvert" class="btn btn-success"><i class="icon-repeat icon-white"></i><span class="text">変換</span></button>
@@ -52,8 +52,8 @@
                     </p>
                 </section>
                 <section id="MediaWiki">
-                    <h2>MediaWiki書式</h2>
-                    <p><label>ソース<br /><textarea id="taMW" name="taMW" cols="40" rows="20" disabled="disabled" placeholder="== MediaWiki書式のソース ==" title="変換後、MediaWiki書式のソースが表示されます"></textarea></label></p>
+                    <h2>MediaWiki 書式</h2>
+                    <p><label>ソース<br /><textarea id="taMW" name="taMW" cols="40" rows="20" disabled="disabled" placeholder="== MediaWiki 書式のソース ==" title="変換後、MediaWiki 書式のソースが表示されます"></textarea></label></p>
                     <div id="links-alphabet">
                         <h3>英字名のページへのリンク</h3>
                     </div>
@@ -80,7 +80,7 @@
                     </ul>
                 </nav>
                 <section id="information">
-                    <h1>Hiki2MediaWiki for SRW Wiki 2.2.0</h1>
+                    <h1>Hiki2MediaWiki for SRW Wiki 2.2.1</h1>
                     <address>2013-02-27 made by <a href="http://wiki.cre.jp/SRW/%E5%88%A9%E7%94%A8%E8%80%85:Ochaochaocha3">ocha</a> with <a href="http://twitter.github.com/bootstrap/">Bootstrap</a> 2.0.4.</address>
                     <nav>
                         <ul>

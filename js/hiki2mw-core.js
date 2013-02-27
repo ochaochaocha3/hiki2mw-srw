@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
- * Core module
- * 2013-02-27 Ver. 2.2.0 made by ocha
+ * Core Module
+ * 2013-02-27 made by ocha
  */
 
 /*jslint browser: true, bitwise: true, regexp: true */
@@ -163,7 +163,7 @@
                     var that = Object.create(h2mwHeading),
                         strHeading,
                         level,
-                        comment = opt_comment !== undefined ? opt_comment : false;
+                        comment = Boolean(opt_comment);
 
                     that.getLineIndex = function getLineIndex() {
                         return lineIndex;
@@ -171,7 +171,7 @@
 
                     if (comment) {
                         strHeading = line.slice(
-                            formatRE.headingComment.exec(line)[0].length - 1
+                            formatRE.headingComment.exec(line)[1].length
                         );
                     } else {
                         strHeading = line;
@@ -209,26 +209,26 @@
                     lastHeading = heading;
                 },
 
-                headingsDFS = function headingsDFS(root, depth) {
-                    var lineIndex = root.getLineIndex(),
+                headingsDFS = function headingsDFS(heading, depth) {
+                    var lineIndex = heading.getLineIndex(),
                         levelMW,
                         sourceMW,
 
-                        lenChildren = root.children.length,
+                        lenChildren = heading.children.length,
                         i;
 
                     if (lineIndex !== null) {
                         levelMW = '='.repeat(depth <= 5 ? depth + 1 : 6);
                         sourceMW = '\n' +
-                            (root.comment ? '//' : '') +
+                            (heading.comment ? '//' : '') +
                             levelMW + ' ' +
-                            root.content +
+                            heading.content +
                             ' ' + levelMW;
                         lines[lineIndex] = sourceMW;
                     }
 
                     for (i = 0; i < lenChildren; i += 1) {
-                        headingsDFS(root.children[i], depth + 1);
+                        headingsDFS(heading.children[i], depth + 1);
                     }
                 },
 

@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
- * Converter of links to abbriviated SRW title
- * 2013-02-27 Ver. 2.2.0 made by ocha
+ * Converter of Links to Abbriviated SRW Title
+ * 2013-02-27 made by ocha
  */
 
 (function (global) {

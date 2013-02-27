@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
- * Link analyzer
- * 2013-02-27 Ver. 2.2.0 made by ocha
+ * Link Analyzer
+ * 2013-02-27 made by ocha
  */
 
 /*jslint regexp: true */
