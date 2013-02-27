@@ -251,8 +251,7 @@ a:hover, a:active {
     width: 48.618784527%;
   }
 }
-nav#navigation {
-  display: none;
+article#content {
   min-height: 1em;
   padding: 20px;
   background-color: #f5f5f5;
@@ -264,34 +263,27 @@ nav#navigation {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1em;
+}
+article#content h3 {
+  margin-top: 1em;
+}
+article#content ul {
+  margin-left: 1.25em;
 }
 
-div#converter form {
+div#operations {
   *zoom: 1;
-  width: 100%;
 }
-div#converter form:before, div#converter form:after {
+div#operations:before, div#operations:after {
   display: block;
   content: "";
 }
-div#converter form:after {
+div#operations:after {
   clear: both;
 }
-div#converter form section {
-  min-height: 1em;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border: 1px solid #eeeeee;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-  float: left;
-}
-div#converter form section#Hiki, div#converter form section#MediaWiki {
+
+p#go-to-page-top {
   display: block;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -299,199 +291,18 @@ div#converter form section#Hiki, div#converter form section#MediaWiki {
   box-sizing: border-box;
   width: 36.170212765957446%;
   margin-left: 2.127659574468085%;
+  float: right;
+  text-align: right;
 }
-div#converter form section#operation {
+
+p#go-to-converter {
   display: block;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  width: 23.404255319148936%;
+  width: 36.170212765957446%;
   margin-left: 2.127659574468085%;
-}
-div#converter form section#operation p.buttons {
-  margin-top: 0.5em;
-  text-align: center;
-}
-div#converter form section#operation label {
-  font-size: 100%;
-}
-div#converter form section#operation button {
-  width: 100px;
-  margin-top: 0.5em;
-}
-div#converter form section#Hiki {
+  float: left;
   margin-left: 0;
-}
-div#converter form fieldset, div#converter form div#links-alphabet, div#converter form div#WikiNames, div#converter form div#links-parenthesis {
-  margin-top: 1em;
-}
-div#converter form h2 + fieldset {
-  margin-top: 0;
-}
-div#converter form div#links-alphabet, div#converter form div#WikiNames, div#converter form div#links-parenthesis {
-  display: none;
-  width: 100%;
-  overflow-x: auto;
-}
-div#converter form label {
-  display: block;
-}
-div#converter form label:hover {
-  color: #006f91;
-  text-decoration: underline;
-}
-div#converter form textarea {
-  display: inline-block;
-  width: 100%;
-  height: auto;
-  resize: vertical;
-  margin-top: 0.225em;
-  padding: 4px;
-  background-color: #fff;
-  border: 1px solid #cccccc;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
-  -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
-  -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
-  -o-transition: border linear 0.2s, box-shadow linear 0.2s;
-  transition: border linear 0.2s, box-shadow linear 0.2s;
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-  color: #555;
-}
-div#converter form textarea:focus {
-  border-color: rgba(82, 168, 236, 0.8);
-  outline: 0;
-  outline: thin dotted \9;
-  /* IE6-9 */
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-}
-div#converter form .table {
-  margin-top: 0.25em;
-  margin-bottom: 0;
-  font-size: 90%;
-}
-div#converter form .table th, div#converter form .table td {
-  vertical-align: middle;
-}
-div#converter form .table th {
-  background-color: #9d261d;
-  background-image: -moz-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: -ms-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ee5f5b), to(#bd362f));
-  background-image: -webkit-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: -o-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: linear-gradient(top, #ee5f5b, #bd362f);
-  background-repeat: repeat-x;
-  color: #fff;
-  text-align: center;
-}
-div#converter form .table td {
-  word-break: break-all;
-}
-div#converter form .table td.number {
-  width: 2.25em;
-  text-align: right;
-}
-div#converter form .table.table-striped tbody td, div#converter form .table.table-striped tbody th {
-  background-color: #fff;
-}
-div#converter form .table.table-striped tbody tr:nth-child(even) td, div#converter form .table.table-striped tbody tr:nth-child(even) th {
-  background-color: #f5f5ff;
-}
-div#converter form .table.table-bordered, div#converter form .table.table-bordered td, div#converter form .table.table-bordered th {
-  border-color: #ccc;
-}
-
-nav#navigation h2, h3, section#Hiki label, section#MediaWiki label, legend {
-  font-size: 100%;
-}
-
-div#MediaWiki strong {
-  margin-left: 2px;
-  margin-right: 2px;
-  padding-left: 2px;
-  padding-right: 2px;
-  background-color: #ffd75a;
-  font-size: 90%;
-  font-weight: bold;
-}
-
-a, label, input[type="checkbox"] {
-  cursor: pointer;
-}
-
-@media (max-width: 979px) {
-  header {
-    position: fixed;
-    width: 100%;
-  }
-
-  nav#navigation {
-    display: block;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -ms-box-sizing: border-box;
-    box-sizing: border-box;
-    width: 22.928176794%;
-    margin-left: 2.762430939%;
-    position: fixed;
-    z-index: 10;
-    top: 68px;
-    right: 20px;
-  }
-
-  div#converter {
-    padding-top: 68px;
-  }
-  div#converter form section {
-    float: none;
-    margin-top: 1em;
-  }
-  div#converter form section:first-child {
-    margin-top: 0;
-  }
-  div#converter form section#Hiki, div#converter form section#operation, div#converter form section#MediaWiki {
-    display: block;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -ms-box-sizing: border-box;
-    box-sizing: border-box;
-    width: 74.30939226%;
-    margin-left: 2.762430939%;
-    margin-left: 0;
-  }
-  div#converter form textarea {
-    height: 12em;
-  }
-}
-@media (min-width: 1200px) {
-  div#converter form section#Hiki, div#converter form section#MediaWiki {
-    display: block;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -ms-box-sizing: border-box;
-    box-sizing: border-box;
-    width: 36.4224137931034%;
-    margin-left: 1.72413793103448%;
-  }
-  div#converter form section#operation {
-    display: block;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -ms-box-sizing: border-box;
-    box-sizing: border-box;
-    width: 23.7068965517241%;
-    margin-left: 1.72413793103448%;
-  }
-  div#converter form section#Hiki {
-    margin-left: 0;
-  }
 }

@@ -1,62 +1,41 @@
 /*
- * Core of Hiki2MediaWiki for SRW Wiki
- * 2012-08-16 Ver. 2.0.4 made by ocha
+ * Hiki2MediaWiki for SRW Wiki
+ * Core module
+ * 2013-02-27 Ver. 2.2.0 made by ocha
  */
 
 /*jslint browser: true, bitwise: true, regexp: true */
 
-var hiki2MW = function () {
+(function (global) {
     'use strict';
 
-    /*
-     * プロトタイプ拡張
-     */
-
-    // オブジェクト
-
-    // 新しいオブジェクトの生成
     if (typeof Object.create !== 'function') {
-        Object.create = function (o) {
+        Object.create = function create(o) {
             var F = function () {};
             F.prototype = o;
             return new F();
         };
     }
 
-    // 関数
-
-    // メソッドの追加
-    Function.prototype.method = function (name, func) {
+    Function.prototype.method = function method(name, func) {
         if (!this.prototype[name]) {
             this.prototype[name] = func;
             return this;
         }
     };
 
-    // 数
-
-    // 整数部分を取り出す
-    Number.method('integer', function () {
+    Number.method('integer', function integer() {
         return Math[this < 0 ? 'ceil' : 'floor'](this);
     });
 
-    // 文字列
-
-    // 重複改行の除去
-    String.method('shortenDuplicateLFs', function () {
+    String.method('shortenDuplicateLFs', function shortenDuplicateLFs() {
         return this.replace(/\n{3,}/g, '\n\n');
     });
 
-    // 先頭・末尾の空白の除去
-    String.method('trim', function () {
-        return this.replace(/^\s+/, '').replace(/\s+$/, '');
-    });
-
-    // 冪乗を利用した高速な文字列の繰り返し
-    String.method('repeat', function (n) {
+    String.method('repeat', function repeat(n) {
         var ret = '', str = this;
 
-        while (n > 0) {
+        while (n) {
             if (n & 1) {
                 ret += str;
             }
@@ -67,12 +46,52 @@ var hiki2MW = function () {
         return ret;
     });
 
-    // 配列
+    String.method('katakanaToHiragana', function katakanaToHiragana() {
+        return this.replace(/[\u30A1-\u30F6]/g, function (ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0x60);
+        });
+    });
 
-    // indexOf
-    Array.method('indexOf', function (elt, opt_from) {
-        var len = this.length,
-            from = Number(opt_from) || 0;
+    String.method('toSurdSound', function toSurdSound() {
+        var patternDullSound = '[' +
+            'がぎぐげご' +
+            'ざじずぜぞ' +
+            'だぢづでど' +
+            'ばびぶべぼ' +
+            ']',
+            reDullSound = new RegExp(patternDullSound, 'g'),
+
+            reLongVowelA = /([あかさたなはまやらわ])ー/g,
+            reLongVowelI = /([いきしちにひみりゐ])ー/g,
+            reLongVowelU = /([うくすつぬふむゆる])ー/g,
+            reLongVowelE = /([えけせてねへめれゑ])ー/g,
+            reLongVowelO = /([おこそとのほもよろを])ー/g;
+
+        return this.replace(reDullSound, function (ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 1);
+        })
+            .replace(/\u3094/g, 'う')
+            .replace(/[ぱぴぷぺぽ]/g, function (ch) {
+                return String.fromCharCode(ch.charCodeAt(0) - 2);
+            })
+            .replace(/[ぁぃぅぇぉっゃゅょゎ]/g, function (ch) {
+                return String.fromCharCode(ch.charCodeAt(0) + 1);
+            })
+            .replace(/[\u3095\u3096]/g, 'か')
+            .replace(reLongVowelA, '$1あ')
+            .replace(reLongVowelI, '$1い')
+            .replace(reLongVowelU, '$1う')
+            .replace(reLongVowelE, '$1え')
+            .replace(reLongVowelO, '$1お');
+    });
+
+    String.method('punctToSpace', function punctToSpace() {
+        return this.replace(/[\u003D\uFF1D\u30A0\u30FB\u0028]/g, ' ')
+            .replace(/\u0029/g, '');
+    });
+
+    Array.method('indexOf', function indexOf(elt, opt_from) {
+        var len = this.length, from = Number(opt_from) || 0;
 
         from = from.integer();
         if (from < 0) {
@@ -89,43 +108,30 @@ var hiki2MW = function () {
         return -1;
     });
 
-    /*
-     * 定数
-     */
+    var BRACKET_LINK_PATTERN = '\\[\\[.+?\\]\\]',
+        URI_PATTERN = "(?:https?|ftp|file|mailto):[A-Za-z0-9;/?:@&=+$,\\-_.!~*'()#%]+",
 
-    var DEBUG = false,
-
-        BRACKET_LINK_RE = '\\[\\[.+?\\]\\]',
-        URI_RE = '(?:https?|ftp|file|mailto):[A-Za-z0-9;/?:@&=+$,\\-_.!~*\'()#%]+',
-        URI_LINK_RE = '\\[' + URI_RE + '.+?\\]',
-        WIKI_NAME_RE = '\\b(?:[A-Z]+[a-z]+[a-z\\d]+){2,}\\b',
-
-    /*
-     * 関数
-     */
-
-        // 行ごとの変換
         convertLineByLine = (function () {
             var lines = [],
                 lenLines,
+
                 tables = [],
                 lenTables,
 
-                // 書式の判定
-                formatREs = {
+                formatRE = {
                     pre: /^[ \t]/,
                     heading: /^!+/,
-                    headingComment: /^\/\/(\s*)!+/,
+                    headingComment: /^(\/\/\s*)!+/,
                     quote: /^""/,
                     dList: /^:/,
                     table: /^\|\|/
                 },
-                determineFormat = function (line) {
+                determineFormat = function determineFormat(line) {
                     var format;
 
-                    for (format in formatREs) {
-                        if (formatREs.hasOwnProperty(format)) {
-                            if (formatREs[format].test(line)) {
+                    for (format in formatRE) {
+                        if (formatRE.hasOwnProperty(format)) {
+                            if (formatRE[format].test(line)) {
                                 return format;
                             }
                         }
@@ -134,9 +140,6 @@ var hiki2MW = function () {
                     return null;
                 },
 
-                // 見出し
-
-                // オブジェクト
                 h2mwHeading = {
                     level: 0,
                     content: '',
@@ -145,39 +148,55 @@ var hiki2MW = function () {
                     parent: null,
                     children: [],
 
-                    appendTo: function (parentHeading) {
+                    getLineIndex: function getLineIndex() {
+                        return null;
+                    },
+
+                    appendTo: function appendTo(parentHeading) {
                         this.parent = parentHeading;
                         parentHeading.children.push(this);
 
                         return this;
                     }
                 },
-                newHeading = function (lineIndex, line) {
+                newHeading = function newHeading(lineIndex, line, opt_comment) {
                     var that = Object.create(h2mwHeading),
-                        level = formatREs.heading.exec(line)[0].length;
+                        strHeading,
+                        level,
+                        comment = opt_comment !== undefined ? opt_comment : false;
 
-                    that.getLineIndex = function () {
+                    that.getLineIndex = function getLineIndex() {
                         return lineIndex;
                     };
+
+                    if (comment) {
+                        strHeading = line.slice(
+                            formatRE.headingComment.exec(line)[0].length - 1
+                        );
+                    } else {
+                        strHeading = line;
+                    }
+
+                    level = formatRE.heading.exec(strHeading)[0].length;
                     that.level = level;
-                    that.content = line.slice(level)
-                        .replace(/[ 　]+（/g, '（');
+                    that.content = strHeading.slice(level).replace(/[ 　]+（/g, '（');
+                    that.comment = comment;
+
+                    that.parent = null;
                     that.children = [];
 
                     return that;
                 },
-                headingsRoot,
+                headingsRoot = Object.create(h2mwHeading),
                 lastHeading,
 
-                // コレクションへの追加
-                appendHeading = function (heading) {
+                appendHeading = function appendHeading(heading) {
                     var parentHeading;
 
                     if (heading.level > lastHeading.level) {
                         parentHeading = lastHeading;
                     } else {
                         parentHeading = lastHeading.parent;
-                        // 遡って親を探す
                         while (heading.level <= parentHeading.level) {
                             if (parentHeading.parent === null) {
                                 break;
@@ -190,74 +209,36 @@ var hiki2MW = function () {
                     lastHeading = heading;
                 },
 
-                // 幅優先探索と変換処理
-                headingsBFS = function (root) {
-                    if (!root || root.children.length === 0) {
-                        return false;
-                    }
-
-                    var queue = [], // キュー。要素は配列
-                        lenQueue,
-                        lenChildren,
-                        buffer = [], // 子配列を保存する配列
-                        depth = 1,
-                        heading,
-
-                        level,
-                        str,
+                headingsDFS = function headingsDFS(root, depth) {
+                    var lineIndex = root.getLineIndex(),
+                        levelMW,
                         sourceMW,
 
-                        i,
-                        j;
+                        lenChildren = root.children.length,
+                        i;
 
-                    queue.push(root.children);
-                    while (true) {
-                        level = depth <= 5 ? depth + 1 : 6;
-                        str = '='.repeat(level);
-
-                        lenQueue = queue.length;
-                        for (i = 0; i < lenQueue; i += 1) {
-                            lenChildren = queue[i].length;
-                            for (j = 0; j < lenChildren; j += 1) {
-                                heading = queue[i][j];
-
-                                sourceMW = '\n' +
-                                    (heading.comment ? '//' : '') +
-                                    str + ' ' +
-                                    heading.content +
-                                    ' ' + str;
-                                lines[heading.getLineIndex()] = sourceMW;
-
-                                if (heading.children.length > 0) {
-                                    buffer.push(heading.children);
-                                }
-                            }
-                        }
-
-                        if (buffer.length === 0) {
-                            break;
-                        }
-
-                        queue = buffer.concat(); // キューに子配列の配列をコピー
-                        buffer.length = 0; // 子配列の配列を空にする
-
-                        depth += 1;
+                    if (lineIndex !== null) {
+                        levelMW = '='.repeat(depth <= 5 ? depth + 1 : 6);
+                        sourceMW = '\n' +
+                            (root.comment ? '//' : '') +
+                            levelMW + ' ' +
+                            root.content +
+                            ' ' + levelMW;
+                        lines[lineIndex] = sourceMW;
                     }
 
-                    return true;
+                    for (i = 0; i < lenChildren; i += 1) {
+                        headingsDFS(root.children[i], depth + 1);
+                    }
                 },
 
-                // 表
-
-                // オブジェクト
-                newTable = function (lineIndex) {
-                    var that = {
+                newTable = function newTable(lineIndex) {
+                    return {
                         rows: [],
-                        getLineIndex: function () {
+                        getLineIndex: function getLineIndex() {
                             return lineIndex;
                         }
                     };
-                    return that;
                 },
 
                 h2mwTableColumn = {
@@ -268,20 +249,24 @@ var hiki2MW = function () {
                 },
 
                 newTableRow = (function () {
-                    var countSpan = function (str, chRE) {
-                            var matches = str.match(new RegExp(chRE, 'g')),
-                                count;
+                    var SPAN_RE = /^[\^>]+/,
+                        ROWSPAN_RE = /\^/g,
+                        COLSPAN_RE = />/g;
 
-                            if (matches !== null) {
-                                count = matches.length + 1;
-                            } else {
-                                count = 0;
-                            }
+                    function countSpan(str, re) {
+                        var matches = str.match(re),
+                            count;
 
-                            return count;
-                        };
+                        if (matches) {
+                            count = matches.length + 1;
+                        } else {
+                            count = 0;
+                        }
 
-                    return function (line) {
+                        return count;
+                    }
+
+                    return function newTableRow(line) {
                         var that = {columns: []},
                             cols,
                             lenCols,
@@ -290,7 +275,7 @@ var hiki2MW = function () {
                             matches,
                             i;
 
-                        cols = line.replace(formatREs.table, '').split('||');
+                        cols = line.replace(formatRE.table, '').split('||');
                         if (cols[cols.length - 1].length === 0) {
                             cols.pop();
                         }
@@ -298,7 +283,6 @@ var hiki2MW = function () {
                         lenCols = cols.length;
                         for (i = 0; i < lenCols; i += 1) {
                             column = Object.create(h2mwTableColumn);
-
                             str = cols[i];
 
                             if (str.charAt(0) === '!') {
@@ -308,12 +292,12 @@ var hiki2MW = function () {
                                 column.heading = false;
                             }
 
-                            matches = str.match(/^[\^>]+/);
-                            if (matches !== null) {
+                            matches = str.match(SPAN_RE);
+                            if (matches) {
                                 column.content = str.slice(matches[0].length);
                                 str = matches[0];
-                                column.rowspan = countSpan(str, '\\^');
-                                column.colspan = countSpan(str, '>');
+                                column.rowspan = countSpan(str, ROWSPAN_RE);
+                                column.colspan = countSpan(str, COLSPAN_RE);
                             } else {
                                 column.content = str;
                             }
@@ -325,29 +309,27 @@ var hiki2MW = function () {
                     };
                 }()),
 
-                // 変換処理
                 convertTables = (function () {
-                    var markupSpan = function (column) {
-                            var rs = column.rowspan,
-                                cs = column.colspan,
-                                ary = [],
-                                markup = '';
+                    function markupSpan(column) {
+                        var rs = column.rowspan,
+                            cs = column.colspan,
+                            attributes = [],
+                            markup = '';
+                        if (rs) {
+                            attributes.push('rowspan="' + rs + '"');
+                        }
+                        if (cs) {
+                            attributes.push('colspan="' + cs + '"');
+                        }
 
-                            if (rs > 0) {
-                                ary.push('rowspan="' + rs + '"');
-                            }
-                            if (cs > 0) {
-                                ary.push('colspan="' + cs + '"');
-                            }
+                        if (attributes.length) {
+                            markup = attributes.join(' ') + ' | ';
+                        }
 
-                            if (ary.length > 0) {
-                                markup = ary.join(' ') + ' | ';
-                            }
+                        return markup;
+                    }
 
-                            return markup;
-                        };
-
-                    return function () {
+                    return function convertTables() {
                         var table,
                             row,
                             lenRows,
@@ -355,24 +337,24 @@ var hiki2MW = function () {
                             lenColumns,
                             lastIsHeading,
                             isHeading,
-                            str,
+                            sourceMW,
                             i,
                             j,
                             k;
 
                         for (i = 0; i < lenTables; i += 1) {
                             table = tables[i];
-                            str = '\n{| class="wikitable"\n';
+                            sourceMW = '\n{| class="wikitable"\n';
 
                             lenRows = table.rows.length;
                             for (j = 0; j < lenRows; j += 1) {
                                 row = table.rows[j];
-                                str += '|-\n';
+                                sourceMW += '|-\n';
 
                                 if (row.columns[0]) {
                                     column = row.columns[0];
                                     isHeading = column.heading;
-                                    str = str + (isHeading ? '! ' : '| ') +
+                                    sourceMW = sourceMW + (isHeading ? '! ' : '| ') +
                                         markupSpan(column) + column.content;
                                     lastIsHeading = isHeading;
 
@@ -381,12 +363,12 @@ var hiki2MW = function () {
                                         column = row.columns[k];
                                         isHeading = column.heading;
                                         if (isHeading === lastIsHeading) {
-                                            str = str +
+                                            sourceMW = sourceMW +
                                                 (isHeading ? ' !! ' : ' || ') +
                                                 markupSpan(column) +
                                                 column.content;
                                         } else {
-                                            str = str + '\n' +
+                                            sourceMW = sourceMW + '\n' +
                                                 (isHeading ? '! ' : '| ') +
                                                 markupSpan(column) +
                                                 column.content;
@@ -394,25 +376,22 @@ var hiki2MW = function () {
                                         lastIsHeading = isHeading;
                                     }
 
-                                    str += '\n';
+                                    sourceMW += '\n';
                                 }
                             }
 
-                            str += '|}\n';
+                            sourceMW += '|}\n';
 
-                            lines[table.getLineIndex()] = str;
+                            lines[table.getLineIndex()] = sourceMW;
                         }
                     };
                 }()),
 
-                // 定義リスト
                 convertDList = (function () {
-                    var pattern = '^((?:' + BRACKET_LINK_RE + '|.)*?):',
-                        re = new RegExp(pattern);
+                    var re = new RegExp('^((?:' + BRACKET_LINK_PATTERN + '|.)*?):');
 
-                    return function (lineIndex) {
-                        var matches,
-                            str;
+                    return function convertDList(lineIndex) {
+                        var matches, str;
 
                         str = lines[lineIndex].slice(1);
 
@@ -420,7 +399,7 @@ var hiki2MW = function () {
                             lines[lineIndex] = str;
                         } else {
                             matches = re.exec(str);
-                            if (matches !== null) {
+                            if (matches) {
                                 lines[lineIndex] = ';' + matches[1] + '\n:' +
                                     str.slice(matches[0].length);
                             } else {
@@ -430,61 +409,16 @@ var hiki2MW = function () {
                     };
                 }()),
 
-                // ソートキー
                 addSortKey = (function () {
-                    String.prototype.katakanaToHiragana = function () {
-                        return this.replace(/[\u30A1-\u30F6]/g, function (ch) {
-                            return String.fromCharCode(ch.charCodeAt(0) - 0x60);
-                        });
-                    };
-
-                    String.prototype.toSurdSound = function () {
-                        var patternDullSound = '[' +
-                                'がぎぐげご' +
-                                'ざじずぜぞ' +
-                                'だぢづでど' +
-                                'ばびぶべぼ' +
-                                ']',
-                            reDullSound = new RegExp(patternDullSound, 'g'),
-
-                            reLongVowelA = /([あかさたなはまやらわ])ー/g,
-                            reLongVowelI = /([いきしちにひみりゐ])ー/g,
-                            reLongVowelU = /([うくすつぬふむゆる])ー/g,
-                            reLongVowelE = /([えけせてねへめれゑ])ー/g,
-                            reLongVowelO = /([おこそとのほもよろを])ー/g;
-
-                        return this.replace(reDullSound, function (ch) {
-                            return String.fromCharCode(ch.charCodeAt(0) - 1);
-                        })
-                            .replace(/\u3094/g, 'う')
-                            .replace(/[ぱぴぷぺぽ]/g, function (ch) {
-                                return String.fromCharCode(ch.charCodeAt(0) - 2);
-                            })
-                            .replace(/[ぁぃぅぇぉっゃゅょゎ]/g, function (ch) {
-                                return String.fromCharCode(ch.charCodeAt(0) + 1);
-                            })
-                            .replace(/[\u3095\u3096]/g, 'か')
-                            .replace(reLongVowelA, '$1あ')
-                            .replace(reLongVowelI, '$1い')
-                            .replace(reLongVowelU, '$1う')
-                            .replace(reLongVowelE, '$1え')
-                            .replace(reLongVowelO, '$1お');
-                    };
-
-                    String.prototype.punctToSpace = function () {
-                        return this.replace(/[\u003D\uFF1D\u30A0\u30FB\u0028]/g, ' ')
-                            .replace(/\u0029/g, '');
-                    };
-
-                    var makeSortKey = function (name) {
+                    function makeSortKey(name) {
                         var sortKey = name.katakanaToHiragana()
                                 .toSurdSound()
                                 .punctToSpace();
 
                         return '<!-- {{DEFAULTSORT:' + sortKey + '}} -->';
-                    };
+                    }
 
-                    return function (name) {
+                    return function addSortKey(name) {
                         if (!(/[^\u0020-\u007E]/.test(name))) {
                             return false;
                         }
@@ -504,46 +438,17 @@ var hiki2MW = function () {
                     };
                 }());
 
-            if (DEBUG) {
-                h2mwHeading.toString = function () {
-                    return 'h' + this.level + ': ' + this.content;
-                };
-
-                h2mwTableColumn.toString = function () {
-                    var str, ary = [];
-
-                    str = (this.heading ? 'h: ' : '') + this.content;
-
-                    if (this.rowspan) {
-                        ary.push('rowspan: ' + this.rowspan);
-                    }
-                    if (this.colspan) {
-                        ary.push('colspan: ' + this.colspan);
-                    }
-
-                    if (ary.length > 0) {
-                        str = str + ' (' + ary.join(', ') + ')';
-                    }
-
-                    return str;
-                };
-            }
-
-            return function (source) {
+            return function convertLineByLine(source) {
                 var tableIndex = -1,
                     line,
                     format,
                     lastFormat = null,
                     heading,
-                    strHeading,
-                    matches = [],
                     i;
 
                 lines = source.split('\n');
                 lenLines = lines.length;
 
-                // コレクションの初期化
-                headingsRoot = Object.create(h2mwHeading);
                 headingsRoot.children = [];
                 lastHeading = headingsRoot;
                 tables = [];
@@ -555,7 +460,6 @@ var hiki2MW = function () {
                     switch (format) {
                     case 'pre':
                         if (lastFormat !== 'pre') {
-                            // 開始タグ
                             lines[i] = '\n<pre>' + line.slice(1);
                         } else {
                             lines[i] = line.slice(1);
@@ -563,14 +467,12 @@ var hiki2MW = function () {
                         break;
                     case 'quote':
                         if (lastFormat !== 'quote') {
-                            // 開始タグ
                             lines[i] = '\n<blockquote>\n' + line.slice(2);
                         } else {
                             lines[i] = line.slice(2);
                         }
                         break;
                     default:
-                        // 終了タグ
                         switch (lastFormat) {
                         case 'pre':
                             lines[i - 1] += '</pre>\n';
@@ -596,10 +498,7 @@ var hiki2MW = function () {
                             appendHeading(heading);
                             break;
                         case 'headingComment':
-                            matches = formatREs.headingComment.exec(line);
-                            strHeading = line.slice(2 + matches[1].length);
-                            heading = newHeading(i, strHeading);
-                            heading.comment = true;
+                            heading = newHeading(i, line, true);
                             appendHeading(heading);
                             break;
                         case 'dList':
@@ -611,15 +510,13 @@ var hiki2MW = function () {
                     lastFormat = format;
                 }
 
-                // 見出し
-                if (headingsRoot.children.length > 0) {
-                    headingsBFS(headingsRoot);
+                if (headingsRoot.children.length) {
+                    headingsDFS(headingsRoot, 0);
                     addSortKey(headingsRoot.children[0].content);
                 }
 
-                // 表
                 lenTables = tables.length;
-                if (lenTables > 0) {
+                if (lenTables) {
                     convertTables();
                 }
 
@@ -627,265 +524,113 @@ var hiki2MW = function () {
             };
         }()),
 
-        // 一括変換
-        convertInBlockBefore = function (source) {
-            var result = source;
-
+        convertInBlockBefore = (function () {
             // 取消線
-            result = result.replace((/\==(.*?)==/g), '<del>$1</del>');
+            var delPattern = {
+                re: /\==(.*?)==/g,
+                replaceStr: '<del>$1</del>'
+            };
 
-            return result;
-        },
-
-        convertInBlockAfter = (function () {
-            // 正規表現のパターンを得る関数
-                // リンク
-            var getExpLink = function (name) {
-                    return '\\[\\[' + name + '\\]\\]';
-                },
-
-                // プラグイン
-                getExpPlugin = function (name) {
-                    return '\\{\\{' + name + '\\}\\}';
-                };
-
-            return function (source) {
-                var strRE, result;
-
-                result = source;
-
-                // 不要な要素をコメントアウトまたは削除
-                strRE = getExpPlugin('toc');
-                result = result.replace(new RegExp(strRE, 'g'), '');
-                result = result.replace(/^\*\[\[一覧:/gm, '//*[[一覧:');
-                result = result.replace(/^\*\[\[namazu:/gm, '//*[[namazu:');
-
-                // URIリンク
-                strRE = getExpLink('(' + URI_RE + ')');
-                result = result.replace(new RegExp(strRE, 'g'), '$1');
-                strRE = getExpLink('([^\\|\\]]+)\\|(' + URI_RE + ')');
-                result = result.replace(new RegExp(strRE, 'g'), '[$2 $1]');
-
-                // パイプ付きリンク
-                strRE = getExpLink('([^\\|\\]]+)\\|(.*?)');
-                result = result.replace(new RegExp(strRE, 'g'), '[[$2|$1]]');
-
-                // 強制改行
-                strRE = getExpPlugin('br');
-                result = result.replace(new RegExp(strRE, 'g'), '<br />');
-
-                // Amazonリンク
-                strRE = getExpPlugin('isbnImg\\(?\'([^\']+)\'\\)?');
-                result = result.replace(new RegExp(strRE, 'g'),
-                    '<amazon>$1<\/amazon>');
-
-                // コメント
-                result = result.replace(/\n{2,}\/\//g,
-                    '\n//'); // 重複改行を除去
-                result = result.replace(/^\/\/(.*)/gm, '<!-- $1 -->');
-
-                return result;
+            return function convertInBlockBefore(source) {
+                return source.replace(delPattern.re, delPattern.replaceStr);
             };
         }()),
 
-        // 変換処理
-        convert = function (source) {
-            // 改行コードを統一
-            source = source.replace(/\r\n/g, '\n');
-
-            // 重複改行、先頭・末尾の空白を除去
-            source = source.shortenDuplicateLFs().trim();
-
-            // ソースが空ならば処理しない
-            if (source === '') {
-                return '';
+        convertInBlockAfter = (function () {
+            function getLinkPattern(name) {
+                return '\\[\\[' + name + '\\]\\]';
             }
 
-            source = convertInBlockBefore(source);
-            source = convertLineByLine(source);
-            source = convertInBlockAfter(source);
+            function getPluginPattern(name) {
+                return '\\{\\{' + name + '\\}\\}';
+            }
 
-            // 重複改行、先頭・末尾の空白を除去
-            source = source.shortenDuplicateLFs().trim();
-
-            return source;
-        },
-
-        // リンクの解析
-        analyzeLinks = (function () {
-            var lines = [],
-                lenLines,
-                reLink,
-                reWikiName,
-                aryPattern = [],
-
-                // MediaWikiリンクオブジェクト
-                h2mwLinkMW = {
-                    link: '', // [[]]の中身
-
-                    toString: function () {
-                        return '[[' + this.link + ']]';
-                    },
-
-                    isPiped: function () {
-                        return (/\|/.test(this.link));
-                    },
-                    getPageName: function () {
-                        var link,
-                            pageName,
-                            indPipe;
-
-                        link = this.link;
-
-                        indPipe = link.indexOf('|');
-                        if (indPipe !== -1) {
-                            pageName = link.slice(0, indPipe);
-                        } else {
-                            pageName = link;
-                        }
-
-                        // ページ名の先頭が“|”の場合は“|”を外す
-                        //（MediaWikiの処理）
-                        if (pageName.charAt(0) === '|') {
-                            pageName = pageName.slice(1);
-                        }
-
-                        return pageName;
-                    },
-                    getLinkText: function () {
-                        var link,
-                            linkText,
-                            indPipe;
-
-                        link = this.link;
-
-                        indPipe = link.indexOf('|');
-                        if (indPipe !== -1) {
-                            linkText = link.slice(indPipe + 1);
-                        } else {
-                            linkText = link;
-                        }
-
-                        return linkText;
-                    }
+            var patterns = [
+                // {{toc}}
+                {
+                    re: new RegExp(getPluginPattern('toc'), 'g'),
+                    replaceStr: ''
                 },
-                newLinkMW = function (lineIndex, charIndex) {
-                    var that = Object.create(h2mwLinkMW);
-
-                    that.getLineIndex = function () {
-                        return Number(lineIndex) + 1;
-                    };
-                    that.getCharIndex = function () {
-                        return charIndex;
-                    };
-
-                    return that;
+                // *[[一覧:]]
+                {
+                    re: new RegExp('^(\\*' + getLinkPattern('一覧:.+?') + ')', 'gm'),
+                    replaceStr: '//$1'
                 },
-
-                // WikiNameオブジェクト
-                h2mwWikiName = {
-                    pageName: '',
-
-                    toString: function () {
-                        return this.pageName;
-                    }
+                // *[[namazu:]]
+                {
+                    re: new RegExp('^(\\*' + getLinkPattern('namazu:.+?') + ')', 'gm'),
+                    replaceStr: '//$1'
                 },
-                newWikiName = function (lineIndex, charIndex) {
-                    var that = Object.create(h2mwWikiName);
+                // [[URI]]
+                {
+                    re: new RegExp(getLinkPattern('(' + URI_PATTERN + ')'), 'g'),
+                    replaceStr: '$1'
+                },
+                // [[リンク名|URI]]
+                {
+                    re: new RegExp(getLinkPattern('([^\\]|]+)\\|(' + URI_PATTERN + ')'), 'g'),
+                    replaceStr: '[$2 $1]'
+                },
+                // [[リンク名|ページ名]]
+                {
+                    re: new RegExp(getLinkPattern('([^\\]|]+)\\|(.*?)'), 'g'),
+                    replaceStr: '[[$2|$1]]'
+                },
+                // {{br}}
+                {
+                    re: new RegExp(getPluginPattern('br'), 'g'),
+                    replaceStr: '<br />'
+                },
+                // {{isbnImg''}}, {{isbnImg('')}}
+                {
+                    re: new RegExp(getPluginPattern("isbnImg\\(?'([^']+)'\\)?"), 'g'),
+                    replaceStr: '<amazon>$1</amazon>'
+                },
+                // コメント前の重複改行の除去
+                {
+                    re: /\n{2,}(\/\/)/g,
+                    replaceStr: '\n$1'
+                },
+                // コメント
+                {
+                    re: /^\/\/(.*)/gm,
+                    replaceStr: '<!-- $1 -->'
+                }
+            ];
 
-                    that.getLineIndex = function () {
-                        return Number(lineIndex) + 1;
-                    };
-                    that.getCharIndex = function () {
-                        return charIndex;
-                    };
-
-                    return that;
-                };
-
-            reLink = new RegExp(BRACKET_LINK_RE, 'g');
-
-            aryPattern.push('(?:' + BRACKET_LINK_RE + ')');
-            aryPattern.push('(?:' + URI_LINK_RE + ')');
-            aryPattern.push('(?:' + WIKI_NAME_RE + ')');
-            reWikiName = new RegExp(aryPattern.join('|'), 'g');
-
-            return function (sourceMW) {
-                var result = {},
-                    line,
-                    linksAlphabet = [],
-                    linkAlphabet,
-                    linksParenthesis = [],
-                    linkParenthesis,
-                    wikiNames = [],
-                    wikiName,
-                    aryLinkRE = [],
-                    aryWikiNameRE = [],
-                    link,
-                    pageName,
-                    lastChar,
+            return function convertInBlock(source) {
+                var lenPatterns = patterns.length,
+                    pattern,
                     i;
 
-                lines = sourceMW.split('\n');
-                lenLines = lines.length;
-
-                for (i = 0; i < lenLines; i += 1) {
-                    line = lines[i];
-                    reLink.lastIndex = 0;
-                    reWikiName.lastIndex = 0;
-
-                    // リンク
-                    while ((aryLinkRE = reLink.exec(line)) !== null) {
-                        link = aryLinkRE[0].slice(2, -2);
-                        pageName = h2mwLinkMW.getPageName.apply({link: link},
-                            []);
-
-                        // 英字名ページへのリンク
-                        if (!/[^ -~]/.test(pageName)) {
-                            // lastIndexは“]”の桁
-                            // → lastIndex + 1 - (length + 4)
-                            linkAlphabet = newLinkMW(i,
-                                reLink.lastIndex - link.length - 3);
-                            linkAlphabet.link = link;
-                            linksAlphabet.push(linkAlphabet);
-                        }
-
-                        // 括弧を含む名前のページへのリンク
-                        lastChar = pageName.charAt(pageName.length - 1);
-                        if (lastChar === ')' || lastChar === '）') {
-                            if (/[\(（]/.test(pageName)) {
-                                // lastIndexは“]”の桁
-                                // → lastIndex + 1 - (length + 4)
-                                linkParenthesis = newLinkMW(i,
-                                    reLink.lastIndex - link.length - 3);
-                                linkParenthesis.link = link;
-                                linksParenthesis.push(linkParenthesis);
-                            }
-                        }
-                    }
-
-                    // WikiName
-                    while ((aryWikiNameRE = reWikiName.exec(line)) !== null) {
-                        if (aryWikiNameRE[0].charAt(0) !== '[') {
-                            pageName = aryWikiNameRE[0];
-                            wikiName = newWikiName(i,
-                                reWikiName.lastIndex + 1 - pageName.length);
-                            wikiName.pageName = pageName;
-                            wikiNames.push(wikiName);
-                        }
-                    }
+                for (i = 0; i < lenPatterns; i += 1) {
+                    pattern = patterns[i];
+                    source = source.replace(pattern.re, pattern.replaceStr);
                 }
 
-                result.linksAlphabet = linksAlphabet;
-                result.linksParenthesis = linksParenthesis;
-                result.wikiNames = wikiNames;
-                return result;
+                return source;
             };
         }());
 
-    // オブジェクトを返す
-    return {
-        convert: convert,
-        analyzeLinks: analyzeLinks
+    function convert(source) {
+        source = source.replace(/\r\n/g, '\n')
+            .shortenDuplicateLFs()
+            .trim();
+
+        if (source === '') {
+            return '';
+        }
+
+        source = convertInBlockBefore(source);
+        source = convertLineByLine(source);
+        source = convertInBlockAfter(source);
+
+        source = source.shortenDuplicateLFs().trim();
+
+        return source;
+    }
+
+    global.HIKI2MW = {
+        convert: convert
     };
-};
+}(this));

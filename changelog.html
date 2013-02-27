@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Hiki2MediaWiki for SRW Wiki</title>
+        <meta name="author" content="ocha" />
+        <meta name="keywords" content="スーパーロボット大戦Wiki,Hiki,MediaWiki,書式" />
+        <link rel="stylesheet" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" href="css/hiki2mw-doc.css" />
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <header>
+            <h1><a href="./">Hiki2MediaWiki for SRW Wiki</a></h1>
+        </header>
+        <div id="main-container">
+            <article id="content">
+                <h2 id="changelog">更新履歴</h2>
+                <h3>2013年2月27日（Ver. 2.2.0）</h3>
+                <ul>
+                    <li>
+                        SRW作品の略称へのリンクを正式名称へのリンクへ変換する機能を追加。
+                        <ul>
+                            <li>有効にすることで、多義語ページへのリンクやリダイレクトを減少させることができます。</li>
+                            <li>例：[[第2次]]→[[第2次スーパーロボット大戦|第2次]]</li>
+                        </ul>
+                    </li>
+                    <li>リンク解析機能を独立化。</li>
+                    <li>全体的なリファクタリング。</li>
+                </ul>
+                <h3>2012年8月16日（Ver. <del>2.0.4</del> 2.1.0）</h3>
+                <ul>
+                    <li>ソートキー生成機能の追加。</li>
+                </ul>
+                <h3>2012年8月2日（Ver. 2.0.3）</h3>
+                <ul>
+                    <li>見出しレベル調整の速度向上。</li>
+                </ul>
+                <h3>2012年7月31日（Ver. 2.0.2）</h3>
+                <ul>
+                    <li>
+                        見出しレベル調整のアルゴリズムを変更（幅優先探索）。
+                        <ul>
+                            <li>これに伴い、「先頭の見出し1（!）を削除する」と「見出しレベルを調整する」のオプション設定は不可能になりました。</li>
+                        </ul>
+                    </li>
+                    <li>URIリンクを含む定義リストの変換に関するバグ（再発）を修正。</li>
+                </ul>
+                <h3>2012年7月7日（Ver. 2.0.1）</h3>
+                <ul>
+                    <li>表の行末に空列を生成しないよう修正。</li>
+                    <li>コメントアウトされた見出しも（コメントアウトされたまま）変換するよう変更。</li>
+                </ul>
+                <h3>2012年6月29日（Ver. 2.0.0）</h3>
+                <ul>
+                    <li>
+                        リンク解析機能を追加。
+                        <ul>
+                            <li>リンク切れが生じやすい「英字名ページへのリンク」、「WikiName」、「括弧を含む名前のページへのリンク」を一覧表示します（有効/無効設定可）。</li>
+                            <li>英字名ページへのリンク、WikiNameには旧wiki上のページへのリンクが設定されるため、リンク先を1クリックで確認することができます。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        対応書式を追加。
+                        <ul>
+                            <li>整形済みテキスト（行頭がスペースまたはタブ。&lt;&lt;&lt; 〜 &gt;&gt;&gt; には現在は未対応）</li>
+                            <li>取消線（== 〜 ==）</li>
+                            <li>引用（行頭が ""）</li>
+                        </ul>
+                    </li>
+                    <li>
+                        動作に関する設定を保存する機能を追加。
+                        <ul>
+                            <li>Cookieを使用します。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        MediaWiki書式のソースの整形機能を改良。
+                        <ul>
+                            <li>整形済みテキスト、見出し、引用、表の前に空行を入れる（ソースの可読性の向上）。</li>
+                            <li>コメント行の前の空行を除く（MediaWiki上での余分な空白の表示を防ぐ）。</li>
+                            <li>見出し内の全角括弧の前の余分な空白を除く。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>2012年6月21日（Ver. 1.3.3）</h3>
+                <ul>
+                    <li>UIを変更。</li>
+                </ul>
+                <h3>2012年6月21日（Ver. 1.3.2）</h3>
+                <ul>
+                    <li>MediaWiki書式の見出しのレベルを2以下にするよう修正。</li>
+                </ul>
+                <h3>2012年6月17日（Ver. 1.3.1）</h3>
+                <ul>
+                    <li>匿名URIリンクの変換を正しく行うよう修正。</li>
+                    <li>MediaWiki書式のソースをフォーカス時に選択状態にする機能を追加。</li>
+                    <li>リファクタリング。変換部と制御部を独立化。</li>
+                </ul>
+                <h3>2012年6月7日（Ver. 1.3.0）</h3>
+                <ul>
+                    <li>表の変換に対応。</li>
+                </ul>
+                <h3>2012年5月30日（Ver. 1.2.2）</h3>
+                <ul>
+                    <li>強制改行（<nowiki>{{br}}</nowiki>）が正しく変換されない点を修正。</li>
+                </ul>
+                <h3>2012年5月29日（Ver. 1.2.1）</h3>
+                <ul>
+                    <li>UIを改良。</li>
+                    <li>配列の処理方法を改良。</li>
+                </ul>
+                <h3>2012年5月27日（Ver. 1.2.0）</h3>
+                <ul>
+                    <li>URIリンクの変換に対応。</li>
+                    <li>URIリンクを含む定義リストの変換に関するバグを修正。</li>
+                    <li>見出しレベルの調整機能を改良。</li>
+                </ul>
+                <h3>2012年5月17日（Ver. 1.1.0）</h3>
+                <ul>
+                    <li>Amazonリンクの変換に関するバグを修正。</li>
+                    <li>アップロード場所を変更。直接使用可能に。</li>
+                    <li>現在未対応の、表の書式変換を行うプログラムを書いています。オーソドックスな見出し行＋通常行の表の変換は可能になりました。今後、見出し列や、行・列の結合に対応させたいと考えているところです。</li>
+                </ul>
+                <h3>2012年5月7日（Ver. 1.0.0）</h3>
+                <ul>
+                    <li>初公開。</li>
+                </ul>
+            </article>
+            <div id="operations">
+                <p id="go-to-page-top"><a href="#changelog" class="btn pull-right"><i class="icon-chevron-up"></i>ページ上部へ戻る</a></p>
+                <p id="go-to-converter"><a href="./" class="btn"><i class="icon-chevron-left"></i>コンバータへ戻る</a></p>
+            </div>
+        </div>
+        <footer id="footer">
+            <div id="footer-container">
+                <nav id="links">
+                    <h1>リンク</h1>
+                    <ul>
+                        <li><a href="http://hiki.cre.jp/SRW/">旧スーパーロボット大戦Wiki（Hiki）</a></li>
+                        <li><a href="http://wiki.cre.jp/SRW/">新スーパーロボット大戦Wiki（MediaWiki）</a></li>
+                    </ul>
+                    <ul>
+                        <li><a href="http://hiki.cre.jp/SRW/?ConvertingHikiFormatToMediawikiFormat">書式変換法の解説（旧wiki）</a></li>
+                        <li><a href="http://wiki.cre.jp/SRW/%E3%83%98%E3%83%AB%E3%83%97:%E7%B7%A8%E9%9B%86">ヘルプ:編集（新wiki）</a></li>
+                    </ul>
+                </nav>
+                <section id="information">
+                    <h1><a href="./">Hiki2MediaWiki for SRW Wiki 2.2.0</a></h1>
+                    <address>2013-02-27 made by <a href="http://wiki.cre.jp/SRW/%E5%88%A9%E7%94%A8%E8%80%85:Ochaochaocha3">ocha</a> with <a href="http://twitter.github.com/bootstrap/">Bootstrap</a> 2.0.4.</address>
+                    <nav>
+                        <ul>
+                            <li><strong>更新履歴</strong></li>
+                        </ul>
+                    </nav>
+                </section>
+            </div>
+        </footer>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+        <script src="js/common.js" charset="UTF-8"></script>
+    </body>
+</html>

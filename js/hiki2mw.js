@@ -1,10 +1,11 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
- * 2012-08-16 Ver. 2.0.4 made by ocha
+ * Controller
+ * 2013-02-27 Ver. 2.2.0 made by ocha
  */
 
 /*jslint browser: true */
-/*global $, hiki2MW */
+/*global $, HIKI2MW */
 
 // ページロード時
 $(function () {
@@ -13,7 +14,7 @@ $(function () {
 // プロトタイプ拡張
 // [関数]
     // メソッドの追加
-    Function.prototype.method = function (name, func) {
+    Function.prototype.method = function method(name, func) {
         if (!this.prototype[name]) {
             this.prototype[name] = func;
             return this;
@@ -22,52 +23,33 @@ $(function () {
 
 // [文字列]
     //“<”、“>”、“&”の実体参照化
-    String.method('entityify', function () {
+    String.method('entityify', function entityify() {
         return this.replace(/&/g, '&amp;').replace(/</g,
             '&lt;').replace(/>/g, '&gt;');
     });
 
 // イベント処理
 
-    var converter = hiki2MW(),
+    var frmHiki2MW = document.getElementById('frmHiki2MW'),
+        $taHiki = $('#taHiki'),
+        $taMW = $('#taMW'),
+        $btnConvert = $('#btnConvert'),
+        $btnConvertText = $('#btnConvert span.text'),
+        $btnReset = $('#btnReset'),
+        $ckbSelectOnFocus = $('#ckbSelectOnFocus'),
+        $ckbAnalyzeLinks = $('#ckbAnalyzeLinks'),
+        $ckbConvertAbbrSRWLinks = $('#ckbConvertAbbrSRWLinks'),
 
-        $anchors,
-        $doc,
+        cursors,
 
-        multistep,
-
-        resetElements,
-
-        displayConverting,
-        restoreDisplay,
-        convert,
         analyzeLinks,
         sourceMW = '',
 
         cookieSelectOnFocus,
         cookieAnalyzeLinks,
+        cookieConvertAbbrSRWLinks;
 
-        select_taMW;
-
-    // スムーズスクロール
-    $anchors = $("a[href^='#']");
-    $doc = $($.browser.safari ? 'body' : 'html');
-
-    $anchors.each(function () {
-        var $anchor = $(this),
-            anchorID = $anchor.attr('href'),
-            $target = $(anchorID);
-
-        $anchor.click(function () {
-            var targetPositionTop = $target.offset().top - 48;
-
-            $doc.stop().animate({scrollTop: targetPositionTop}, {duration: 400});
-
-            return false;
-        });
-    });
-
-    multistep = function (steps, args, callback) {
+    function multistep(steps, args, callback) {
         var tasks = steps.concat(), //元の配列のクローンを作成
             doTask = function () {
                 // 次のタスクを実行する
@@ -82,91 +64,116 @@ $(function () {
                 }
             };
         setTimeout(doTask, 25);
-    };
+    }
 
-    resetElements = function () {
+    function resetElements() {
         sourceMW = '';
-        document.getElementById('taMW').value = '';
+        $taMW[0].disabled = true;
+        $taMW.val('');
 
         $('section#MediaWiki div').hide()
             .children().not('h3').remove();
-    };
+    }
 
-    displayConverting = function () {
-        $('body, textarea, button, ' +
-                'a, label, input[type="checkbox"]')
-            .css('cursor', 'wait');
-        document.getElementById('btnConvert').disabled = true;
-        document.getElementById('btnReset').disabled = true;
-        $('#btnConvert .text').text('変換中');
+    function displayConverting() {
+        var elements, len, i;
+
+        elements = document.getElementsByTagName('*');
+        len = elements.length;
+
+        cursors = [];
+        for (i = 0; i < len; i += 1) {
+            cursors.push(elements[i].style.cursor);
+        }
+
+        $('*').css('cursor', 'wait');
+
+        $btnConvert[0].disabled = true;
+        $btnReset[0].disabled = true;
+        $btnConvertText.text('変換中');
         resetElements();
-    };
+    }
 
-    restoreDisplay = function () {
-        document.getElementById('btnConvert').disabled = false;
-        document.getElementById('btnReset').disabled = false;
-        $('#btnConvert .text').text('変換');
-        $('body').css('cursor', 'auto');
-        $('textarea').css('cursor', 'text');
-        $('button, a, label, input[type="checkbox"]')
-            .css('cursor', 'pointer');
-    };
+    function restoreDisplay() {
+        var elements, len, i;
 
-    convert = function () {
-        var sourceHiki = document.getElementById('taHiki').value;
-        sourceMW = converter.convert(sourceHiki);
-        document.getElementById('taMW').value = sourceMW;
-    };
+        $taMW[0].disabled = false;
+        $btnConvert[0].disabled = false;
+        $btnReset[0].disabled = false;
+        $btnConvertText.text('変換');
+
+        elements = document.getElementsByTagName("*");
+        len = elements.legnth;
+        for (i = 0; i < len; i += 1) {
+            elements[i].style.cursor = cursors[i];
+        }
+    }
+
+    function convert() {
+        var sourceHiki = $taHiki.val();
+        sourceMW = HIKI2MW.convert(sourceHiki);
+        $taMW.val(sourceMW);
+    }
+
+    function convertAbbrSRWLinks() {
+        sourceMW = HIKI2MW.convertAbbrSRWLinksMW(sourceMW);
+        $taMW.val(sourceMW);
+    }
 
     analyzeLinks = (function () {
-        var get$linkMW = function (linkMW, opt_setLink) {
-            var $linkMW,
-                setLink = Boolean(opt_setLink),
-                href,
-                htmlLinkText;
+        var URI_OLD_WIKI = 'http://hiki.cre.jp/SRW/?',
 
-            href = 'http://hiki.cre.jp/SRW/?' +
-                encodeURIComponent(linkMW.getPageName());
+            get$linkMW = function (linkMW, opt_setLink) {
+                var $linkMW,
+                    setLink = Boolean(opt_setLink),
+                    href,
+                    htmlLinkText;
 
-            if (linkMW.isPiped()) {
-                htmlLinkText = '[[<strong>' +
-                    linkMW.getPageName().entityify() +
-                    '</strong>|' +
-                    linkMW.getLinkText().entityify() +
-                    ']]';
-                if (setLink) {
-                    $linkMW = $('<a>', {href: href, html: htmlLinkText});
+                href = URI_OLD_WIKI + encodeURIComponent(linkMW.getPageName());
+
+                if (linkMW.isPiped()) {
+                    htmlLinkText = '[[<strong>' +
+                        linkMW.getPageName().entityify() +
+                        '</strong>|' +
+                        linkMW.getLinkText().entityify() +
+                        ']]';
+                    if (setLink) {
+                        $linkMW = $('<a>', {href: href, html: htmlLinkText});
+                    } else {
+                        $linkMW = htmlLinkText;
+                    }
                 } else {
-                    $linkMW = htmlLinkText;
+                    if (setLink) {
+                        $linkMW = $('<a>', {href: href, text: linkMW.toString()});
+                    } else {
+                        $linkMW = linkMW.toString().entityify();
+                    }
                 }
-            } else {
-                if (setLink) {
-                    $linkMW = $('<a>', {href: href, text: linkMW.toString()});
-                } else {
-                    $linkMW = linkMW.toString().entityify();
-                }
-            }
 
-            return $linkMW;
-        };
+                return $linkMW;
+            };
 
-        return function () {
+        return function analyzeLinks() {
             var result,
+
                 $table,
                 $tbody,
                 $tr,
-                len,
+
                 linkAlphabet,
                 linkParenthesis,
                 wikiName,
                 hrefWikiName,
+
+                len,
+
                 i;
 
-            result = converter.analyzeLinks(sourceMW);
+            result = HIKI2MW.analyzeLinks(sourceMW);
 
             // 英字名ページへのリンクの一覧表示
             len = result.linksAlphabet.length;
-            if (len > 0) {
+            if (len) {
                 $table = $('<table>', {
                     summary: '英字名ページへのリンクの一覧'
                 });
@@ -185,11 +192,11 @@ $(function () {
                         .addClass('number')
                         .appendTo($tr);
                     // 行
-                    $('<td>', {text: linkAlphabet.getLineIndex()})
+                    $('<td>', {text: linkAlphabet.getLineNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // 桁
-                    $('<td>', {text: linkAlphabet.getCharIndex()})
+                    $('<td>', {text: linkAlphabet.getCharNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // リンク
@@ -207,7 +214,7 @@ $(function () {
 
             // WikiNameの一覧表示
             len = result.wikiNames.length;
-            if (len > 0) {
+            if (len) {
                 $table = $('<table>', {
                     summary: 'WikiNameの一覧'
                 });
@@ -226,15 +233,15 @@ $(function () {
                         .addClass('number')
                         .appendTo($tr);
                     // 行
-                    $('<td>', {text: wikiName.getLineIndex()})
+                    $('<td>', {text: wikiName.getLineNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // 桁
-                    $('<td>', {text: wikiName.getCharIndex()})
+                    $('<td>', {text: wikiName.getCharNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // WikiName
-                    hrefWikiName = 'http://hiki.cre.jp/SRW/?' +
+                    hrefWikiName = URI_OLD_WIKI +
                         encodeURIComponent(wikiName.pageName);
                     $('<td>').append($('<a>',
                         {href: hrefWikiName, text: wikiName.pageName}))
@@ -250,7 +257,7 @@ $(function () {
 
             // 括弧を含む名前のページへのリンクの一覧表示
             len = result.linksParenthesis.length;
-            if (len > 0) {
+            if (len) {
                 $table = $('<table>', {
                     summary: '括弧を含む名前のページへのリンク'
                 });
@@ -269,11 +276,11 @@ $(function () {
                         .addClass('number')
                         .appendTo($tr);
                     // 行
-                    $('<td>', {text: linkParenthesis.getLineIndex()})
+                    $('<td>', {text: linkParenthesis.getLineNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // 桁
-                    $('<td>', {text: linkParenthesis.getCharIndex()})
+                    $('<td>', {text: linkParenthesis.getCharNumber()})
                         .addClass('number')
                         .appendTo($tr);
                     // リンク
@@ -292,12 +299,15 @@ $(function () {
     }());
 
     // 変換ボタンクリック時
-    $('#btnConvert').click(function () {
-        if (document.getElementById('taHiki').value === '') {
+    $btnConvert.click(function btnConvertOnClick() {
+        if ($taHiki.val() === '') {
             return false;
         }
 
         var steps = [displayConverting, convert];
+        if ($ckbConvertAbbrSRWLinks[0].checked) {
+            steps.push(convertAbbrSRWLinks);
+        }
         if (document.getElementById('ckbAnalyzeLinks').checked) {
             steps.push(analyzeLinks);
         }
@@ -306,42 +316,52 @@ $(function () {
     });
 
     // リセット時
-    document.frmHiki2MW.onreset = function () {
+    frmHiki2MW.onreset = function frmHiki2MWOnReset() {
         resetElements();
-        document.getElementById('taHiki').value = '';
+        $taHiki.val('');
         return false;
     };
 
     // Cookie
     cookieSelectOnFocus = $.cookie('selectOnFocus');
     cookieAnalyzeLinks = $.cookie('analyzeLinks');
+    cookieConvertAbbrSRWLinks = $.cookie('convertAbbrSRWLinks');
     // デフォルト値の設定
     if (cookieAnalyzeLinks === null) {
         cookieAnalyzeLinks = true;
     }
+    if (cookieConvertAbbrSRWLinks === null) {
+        cookieConvertAbbrSRWLinks = true;
+    }
 
-    document.getElementById('ckbSelectOnFocus').checked = Number(cookieSelectOnFocus);
-    document.getElementById('ckbAnalyzeLinks').checked = Number(cookieAnalyzeLinks);
+    $ckbSelectOnFocus[0].checked = Number(cookieSelectOnFocus);
+    $ckbAnalyzeLinks[0].checked = Number(cookieAnalyzeLinks);
+    $ckbConvertAbbrSRWLinks[0].checked = Number(cookieConvertAbbrSRWLinks);
 
     // チェックボックスのクリック時に、有効期限7日間でcookieへ設定を保存する
-    $('#ckbSelectOnFocus').click(function () {
+    $ckbSelectOnFocus.click(function () {
         $.cookie('selectOnFocus',
-            Number(document.getElementById('ckbSelectOnFocus').checked),
+            Number($ckbSelectOnFocus[0].checked),
             {expires: 7});
     });
-    $('#ckbAnalyzeLinks').click(function () {
+    $ckbAnalyzeLinks.click(function () {
         $.cookie('analyzeLinks',
-            Number(document.getElementById('ckbAnalyzeLinks').checked),
+            Number($ckbAnalyzeLinks[0].checked),
             {expires: 7});
+    });
+    $ckbConvertAbbrSRWLinks.click(function () {
+        $.cookie('convertAbbrSRWLinks',
+            Number($ckbConvertAbbrSRWLinks[0].checked),
+            {expries: 7});
     });
 
     // taMWをフォーカス時に全選択状態にする
-    select_taMW = function () {
-        document.getElementById('taMW').select();
-    };
+    function select_taMW() {
+        $taMW[0].select();
+    }
 
     $('#taMW').focus(function () {
-        if (document.getElementById('ckbSelectOnFocus').checked) {
+        if ($ckbSelectOnFocus[0].checked) {
             // 100 ms遅らせ、ブラウザの処理との衝突を回避
             setTimeout(select_taMW, 100);
         }

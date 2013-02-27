@@ -1,0 +1,34 @@
+@import "html5doctor-reset";
+@import "hiki2mw-common";
+
+article#content {
+    @include well;
+
+    margin-bottom: 1em;
+
+    h3 {
+        margin-top: 1em;
+    }
+
+    ul {
+        margin-left: 1.25em;
+    }
+}
+
+div#operations {
+    @include clearfix;
+}
+
+p#go-to-page-top {
+    @include span3;
+
+    float: right;
+    text-align: right;
+}
+
+p#go-to-converter {
+    @include span3;
+
+    float: left;
+    margin-left: 0;
+}
