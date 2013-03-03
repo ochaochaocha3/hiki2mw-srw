@@ -414,7 +414,7 @@ nav#navigation h2, h3, section#Hiki label, section#MediaWiki label, legend {
   font-size: 100%;
 }
 
-div#MediaWiki strong {
+section#MediaWiki strong {
   margin-left: 2px;
   margin-right: 2px;
   padding-left: 2px;
