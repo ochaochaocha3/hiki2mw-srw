@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
  * Controller Module
- * 2013-02-27 made by ocha
+ * 2013-03-07 made by ocha
  */
 
 /*jslint browser: true */
@@ -28,8 +28,6 @@ $(function () {
             '&lt;').replace(/>/g, '&gt;');
     });
 
-// イベント処理
-
     var frmHiki2MW = document.getElementById('frmHiki2MW'),
         $taHiki = $('#taHiki'),
         $taMW = $('#taMW'),
@@ -43,8 +41,20 @@ $(function () {
         elements,
         lenElements,
         cursors,
-        cursorTAEnabled = window.getComputedStyle($taHiki[0]).cursor,
-        cursorTADisabled = window.getComputedStyle($taMW[0]).cursor,
+        getCurrentStyle = (function () {
+            if (typeof window.getComputedStyle === 'function') {
+                return function getCurrentStyle_getComputedStyle(element) {
+                    return window.getComputedStyle(element);
+                };
+            }
+
+            // IE 8 以前用
+            return function getCurrentStyle_currentStyle(element) {
+                return element.currentStyle;
+            };
+        }()),
+        cursorTAEnabled = getCurrentStyle($taHiki[0]).cursor,
+        cursorTADisabled = getCurrentStyle($taMW[0]).cursor,
 
         analyzeLinks,
         sourceMW = '',
@@ -88,7 +98,7 @@ $(function () {
 
         cursors = [];
         for (i = 0; i < lenElements; i += 1) {
-            cursors.push(window.getComputedStyle(elements[i]).cursor);
+            cursors.push(getCurrentStyle(elements[i]).cursor);
         }
 
         $('*').css('cursor', 'wait');
