@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
  * Core Module
- * 2013-02-27 made by ocha
+ * 2013-03-10 made by ocha
  */
 
 /*jslint browser: true, bitwise: true, regexp: true */
@@ -30,6 +30,10 @@
 
     String.method('shortenDuplicateLFs', function shortenDuplicateLFs() {
         return this.replace(/\n{3,}/g, '\n\n');
+    });
+
+    String.method('trim', function trim() {
+        return this.replace(/^\s+/, '').replace(/\s+$/, '');
     });
 
     String.method('repeat', function repeat(n) {
