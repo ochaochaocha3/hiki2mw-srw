@@ -1,7 +1,7 @@
 /*
  * Hiki2MediaWiki for SRW Wiki
  * Controller Module
- * 2013-03-07 made by ocha
+ * 2013-03-10 made by ocha
  */
 
 /*jslint browser: true */
@@ -89,13 +89,22 @@ $(function () {
             .children().not('h3').remove();
     }
 
+    function getElementsSnapshot() {
+        var nodes = document.getElementsByTagName('*'),
+            len = nodes.length,
+            i;
+
+        elements = [];
+        for (i = 0; i < len; i += 1) {
+            elements.push(nodes[i]);
+        }
+        lenElements = elements.length;
+    }
+
     function displayConverting() {
         var i;
 
-        elements = Array.prototype.slice.apply(
-            document.getElementsByTagName('*'), []);
-        lenElements = elements.length;
-
+        getElementsSnapshot();
         cursors = [];
         for (i = 0; i < lenElements; i += 1) {
             cursors.push(getCurrentStyle(elements[i]).cursor);
